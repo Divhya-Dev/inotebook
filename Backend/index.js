@@ -9,7 +9,7 @@ const port = 5000
 
 app.use(express.json());
 app.use('/auth', authRoutes);
-app.use('/createNote', notesRoutes);
+app.use('/notes', notesRoutes);
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)

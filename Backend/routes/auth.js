@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import expValidator from 'express-validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import fetchUser from '../middleware/fetchuser.js';
 const router = express.Router();
 const {body, validationResult } = expValidator;
 
@@ -80,6 +81,22 @@ router.post('/login',[body('email').isEmail()], async(req, res) => {
         console.log(err);
     }
    
+})
+
+
+//ROUTE 3: Get userDetails after login Path-/auth/getUser
+router.post('/getUser', fetchUser, async(req, res) =>{
+
+    try
+    {
+        const userId = req.user.id;
+        const user = await User.findById(userId).select('-password'); //all fields except password will be selected
+        res.status(200).json(user);
+    }
+    catch(err){
+        res.status(500).json({error: 'An unexpected error has occured.', message: err.message});
+    }
+
 })
 
 
