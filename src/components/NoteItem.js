@@ -9,7 +9,7 @@ const NoteItem = (props) =>{
 
     const handleClick = async(id) =>{
         await deleteNote(id);
-        showAlert('Note has been deleted.');
+        showAlert('Note has been deleted.', 'primary');
     }
 
     return(
@@ -19,7 +19,7 @@ const NoteItem = (props) =>{
             <div className="card-body">
                 <h5 className="card-title">{note.tag}</h5>
                 <p className="card-text">{note.description}</p>
-                <i className="fa-regular fa-pen-to-square mx-2" onClick={()=> openNote()}></i>
+                <i className="fa-regular fa-pen-to-square mx-2" onClick={()=> openNote(note)}></i>
                 <i className="fa-regular fa-trash-can mx-2" onClick={()=> handleClick(note._id)}></i>
             </div>
             

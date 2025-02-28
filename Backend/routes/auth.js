@@ -12,6 +12,7 @@ const JWT_SECRET = 'katisthegod';
 //ROUTE 1: Create a new user using POST, Path-/auth/createUser
 router.post('/createUser',[body('name').notEmpty(), body('email').isEmail()], async(req, res) => {
     const errors = validationResult (req);
+    let status = 'fail';
     //Any validation errors found will be shown in response
     if(!errors.isEmpty())
         return res.status(400).json({ errors: errors.array() });
@@ -21,7 +22,7 @@ router.post('/createUser',[body('name').notEmpty(), body('email').isEmail()], as
         //Find if request email matches already existing mail in db
         let user = await User.findOne({email: req.body.email});
         if(user)
-            return res.status(400).json('User already exists please try again.');  
+            return res.status(400).json({status: status, error:'User already exists please try again.'});  
 
         const salt = await bcrypt.genSalt(10);
         const secretPassword = await bcrypt.hash(req.body.password, salt);
@@ -38,11 +39,12 @@ router.post('/createUser',[body('name').notEmpty(), body('email').isEmail()], as
             }}
         const authToken = jwt.sign(data, JWT_SECRET);
         console.log(req.body);
-        return res.status(200).json({authToken});   
+        status = 'success';
+        return res.status(200).json({status, authToken});   
 
     }
     catch(err){
-        res.status(500).json({error: 'Some unexpected error has occured.', message: err.message}); 
+        res.status(500).json({status, error: 'Some unexpected error has occured.', message: err.message}); 
         console.log(err);
     }
    
@@ -53,8 +55,9 @@ router.post('/createUser',[body('name').notEmpty(), body('email').isEmail()], as
 router.post('/login',[body('email').isEmail()], async(req, res) => {
 
     const errors = validationResult(req);
+    let status = 'fail';
     if(!errors.isEmpty())
-        return res.status(400).json({errors: errors.array()});
+        return res.status(400).json({status, errors: errors.array()});
 
     try
     {
@@ -62,11 +65,11 @@ router.post('/login',[body('email').isEmail()], async(req, res) => {
         let user = await User.findOne({email});
         //console.log('entered try')
         if(!user)
-            return res.status(400).json({error: 'User not found please enter a registered Email ID.'});
+            return res.status(400).json({status, error: 'User not found please enter a registered Email ID.'});
     
         const passwordCompare = bcrypt.compareSync(password, user.password);
         if(!passwordCompare)
-            return res.status(400).json({error: 'Please enter the correct password.'});
+            return res.status(400).json({status, error: 'Please enter the correct password.'});
 
         const data = {
             user: {
@@ -74,10 +77,11 @@ router.post('/login',[body('email').isEmail()], async(req, res) => {
             }
         };
         const authToken = jwt.sign(data, JWT_SECRET);
-        res.status(200).json({authToken: authToken});
+        status= 'success';
+        res.status(200).json({status, authToken: authToken});
     }
     catch(err){
-        res.status(500).json({error:'An unexpcted error has occured.', message: err.message})
+        res.status(500).json({status, error:'An unexpcted error has occured.', message: err.message})
         console.log(err);
     }
    

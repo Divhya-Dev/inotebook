@@ -20,7 +20,7 @@ router.post('/addNotes', fetchuser,
 
     const errors = validationResult(req.body);
     if(!errors.isEmpty())
-        return res.status(400).json({errors: errors.array()});
+        return res.status(400).json({error: errors.array()});
     try
     {
         const note = await Notes.create({

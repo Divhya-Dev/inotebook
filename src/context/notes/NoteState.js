@@ -9,10 +9,27 @@ const NoteState = (props) => {
     const [notes, setNote] = useState(initialNote);
     const [alert, setAlert] = useState()
 
+  //Handle Login
+  const login = async(email, password) =>{
+
+    const token = await callAPI('auth/login', 'POST', "", {email, password});
+    return token;
+
+  }
+
+  //Handle Sign up
+  const signup = async(name, email, password) =>{
+    //console.log(name + email+ password);
+    const token = await callAPI('auth/createUser', 'POST', "", {name, email, password});
+    return token;
+  }
+
+
     //Handle Alert
-    const showAlert= (msg) => {
+    const showAlert= (msg, type) => {
         setAlert({
-        message: msg
+        message: msg,
+        type: type
         })
         setTimeout(() => setAlert(null), 2000)
     }
@@ -20,8 +37,7 @@ const NoteState = (props) => {
     //Fetch Notes
     const getNotes = async() =>{
 
-        const noteList = await callAPI('notes/getNotes', 'GET', "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdiNWRiOGMxYTVhMzA2M2IwMThiODk5In0sImlhdCI6MTc0MDAzNjE3Nn0.PjDsN7_yq1XhTIvVgXHx13-iBZQTIaMVB7osOsS6XLg");
-        //console.log(noteList);
+        const noteList = await callAPI('notes/getNotes', 'GET', localStorage.getItem('token'));
         setNote(noteList);
 
     }
@@ -29,28 +45,29 @@ const NoteState = (props) => {
     //Add Notes
     const addNotes = async(title, description, tag) =>{
 
-        await callAPI('notes/addNotes', 'POST', "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdiNWRiOGMxYTVhMzA2M2IwMThiODk5In0sImlhdCI6MTc0MDAzNjE3Nn0.PjDsN7_yq1XhTIvVgXHx13-iBZQTIaMVB7osOsS6XLg", {title, description, tag});
+        const noteDetail = await callAPI('notes/addNotes', 'POST', localStorage.getItem('token'), {title, description, tag});
         setNote(notes.concat({
-                "user": "67b5db8c1a5a3063b018b8949",
-                "title": title,
-                "description": description,
-                "tag": tag,
-                "date": "Mon Feb 24 2025 17:07:09 GMT+0530 (India Standard Time)",
-                "_id": "67bc59e53649cf43c77f8d6d800",
+                "user": noteDetail.user,
+                "title": noteDetail.title,
+                "description": noteDetail.description,
+                "tag": noteDetail.tag,
+                "date": noteDetail.date,
+                "_id": noteDetail._id,
                 "__v": 0  
-        }))
+        }));
+        return noteDetail;
     }
 
     //Update Notes
     const updateNote = async(id, title, description, tag) =>{
     
-        const newNote = {}//{...note,title, description, tag};
-        await callAPI('notes/updateNote', 'PUT', '', newNote);
+        const newNote = {id,title, description, tag};
+        await callAPI('notes/updateNote', 'PUT', localStorage.getItem('token'), newNote);
 
         const updatedNotes = notes.map((note) => {
                 if(note._id === id){
                     
-                    return {...note,title, description, tag};
+                    return {...note, title, description, tag};
                 }
                     
                 return note;
@@ -63,7 +80,7 @@ const NoteState = (props) => {
 
     //Delete Notes
     const deleteNote = async(id) =>{
-        await callAPI(`notes/deleteNote/${id}`, 'DELETE', "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjdiNWRiOGMxYTVhMzA2M2IwMThiODk5In0sImlhdCI6MTc0MDAzNjE3Nn0.PjDsN7_yq1XhTIvVgXHx13-iBZQTIaMVB7osOsS6XLg");
+        await callAPI(`notes/deleteNote/${id}`, 'DELETE', localStorage.getItem('token'));
         setNote(notes.filter((note) => note._id !== id));
         
     }
@@ -99,7 +116,7 @@ const NoteState = (props) => {
 
  
   return (
-    <noteContext.Provider value={{notes, setNote, alert, setAlert, showAlert, getNotes, addNotes, updateNote, deleteNote }}>
+    <noteContext.Provider value={{login, signup, notes, setNote, alert, setAlert, showAlert, getNotes, addNotes, updateNote, deleteNote }}>
       {props.children}
     </noteContext.Provider>
   );
